@@ -1,0 +1,77 @@
+## README.short.md
+## This is a CloudFormation template which will generate API Gateway and Lambda function
+## The API Gateway has one POST method acting as a proxy for Lambda
+
+## IMPORTANT!
+## Before creating stack with this template, please do this thing:
+## 1. Create a role in IAM with, at least, AWSLambdaBasicExecutionRole policy
+## 2. Get the ARN of the role and substitute the Lambda execution role in this template
+
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  RestApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: rest-api-github-webhook
+      Description: This is a REST API for GitHub webhook
+
+  RestApiMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !GetAtt RestApi.RootResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 
+          - >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - LambdaArn: !GetAtt LambdaFunction.Arn
+
+  RestApiDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref RestApi
+    DependsOn: RestApiMethod
+
+  RestApiStage:
+    Type: 'AWS::ApiGateway::Stage'
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref RestApiDeployment
+
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: func-github-webhook-handler
+      ## This is Lambda execution role
+      ## Please change this with your role ARN
+      Role: 'arn:aws:iam::614734245332:role/LambdaBasicExecutionRole'
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+            print(event)
+                
+            return {
+              'statusCode': 200,
+              'body': json.dumps('Hello, this is a Lambda function to handle GitHub webhook. This is generated using CloudFormation.')
+            }
+  
+  LambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/POST/'
+
+Outputs:
+  RestApiURL:
+    Value: !Sub >-
+      https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStage}

@@ -60,15 +60,15 @@ Resources:
           import json
 
           def lambda_handler(event, context):
-              if event is not None:
-                try:
-                  payload = json.loads(event["body"])
-                  name = payload["repository"]["owner"]["name"]
-                  email = payload["repository"]["owner"]["email"]
-                  print(name)
-                  print(email)
-                except Exception as e:
-                  print(str(e))
+            if event is not None:
+              try:
+                payload = json.loads(event["body"])
+                name = payload["repository"]["owner"]["name"]
+                email = payload["repository"]["owner"]["email"]
+                print(name)
+                print(email)
+              except Exception as e:
+                print(str(e))
                 
             return {
               'statusCode': 200,

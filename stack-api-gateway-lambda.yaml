@@ -2,10 +2,14 @@
 ## This is a CloudFormation template which will generate API Gateway and Lambda function
 ## The API Gateway has one POST method acting as a proxy for Lambda
 
-## IMPORTANT!
-## Before creating stack with this template, please do this thing:
+## IMPORTANT!!!
+## Before creating stack with this template, please do these thing:
 ## 1. Create a role in IAM with, at least, AWSLambdaBasicExecutionRole policy
 ## 2. Get the ARN of the role and substitute the Lambda execution role in this template
+
+## IMPORTANT!!!
+## After creating the stack using this template, you can find the webhook URL in the stack output of CloudFormation
+## When creating a webhook in GitHub, make sure you SELECT Content type = application/json
 
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
@@ -56,7 +60,15 @@ Resources:
           import json
 
           def lambda_handler(event, context):
-            print(event)
+              if event is not None:
+                try:
+                  payload = json.loads(event["body"])
+                  name = payload["repository"]["owner"]["name"]
+                  email = payload["repository"]["owner"]["email"]
+                  print(name)
+                  print(email)
+                except Exception as e:
+                  print(str(e))
                 
             return {
               'statusCode': 200,

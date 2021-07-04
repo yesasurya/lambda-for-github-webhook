@@ -8,8 +8,11 @@
 ## 2. Get the ARN of the role and substitute the Lambda execution role in this template
 
 ## IMPORTANT!!!
-## After creating the stack using this template, you can find the webhook URL in the stack output of CloudFormation
-## When creating a webhook in GitHub, make sure you SELECT Content type = application/json
+## 1. After creating the stack using this template, you can find the webhook URL in the stack output of CloudFormation
+## 2. When creating a webhook in GitHub, make sure you SELECT Content type = application/json
+## 3. When creating a webhook in GitHub, please configure a SECRET TOKEN
+## 4. As for now, (unsecurely) we store the SECRET TOKEN as plain text in the CloudFormation template
+##    Please put that SECRET TOKEN in the CloudFormation template below
 
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
@@ -50,29 +53,55 @@ Resources:
     Type: 'AWS::Lambda::Function'
     Properties:
       FunctionName: func-github-webhook-handler
-      ## This is Lambda execution role
+      ## This is the Lambda execution role
       ## Please change this with your role ARN
       Role: 'arn:aws:iam::614734245332:role/LambdaBasicExecutionRole'
       Runtime: python3.8
       Handler: index.lambda_handler
       Code:
+        ## This is the Lambda code
+        ## Please put your SECRET TOKEN in this code (SUPER_SECRET_TOKEN variable)
         ZipFile: |
           import json
+          import hmac
+          import hashlib
+
+          def generate_signature(payload):
+            SUPER_SECRET_TOKEN = ''
+            signature = hmac.new(SUPER_SECRET_TOKEN.encode(), payload.encode(), hashlib.sha1).hexdigest()
+            return 'sha1={0}'.format(signature)
+  
+  
+          def verify_signature(signature1, signature2):
+            return hmac.compare_digest(signature1, signature2)
+
 
           def lambda_handler(event, context):
-            if event is not None:
-              try:
-                payload = json.loads(event["body"])
-                name = payload["repository"]["owner"]["name"]
-                email = payload["repository"]["owner"]["email"]
-                print(name)
-                print(email)
-              except Exception as e:
-                print(str(e))
+            headers = event["headers"]
+            GITHUB_SIGNATURE = headers["X-Hub-Signature"]
+
+            payload = event["body"]
+            PAYLOAD_SIGNATURE = generate_signature(payload)
+    
+            if verify_signature(GITHUB_SIGNATURE, PAYLOAD_SIGNATURE):
+              print('[SUCCESS]: Signature matched.')
+      
+              payload = json.loads(payload)
+              name = payload["repository"]["owner"]["name"]
+              email = payload["repository"]["owner"]["email"]
+              print('[INFO]: {0}'.format(name))
+              print('[INFO]: {0}'.format(email))
+      
+            else:
+              print('[ERROR]: Signature is not matched.')
+              return {
+                'statusCode': 401,
+                'body': json.dumps('Access denied. Signature is not matched.')
+              }
                 
             return {
               'statusCode': 200,
-              'body': json.dumps('Hello, this is a Lambda function to handle GitHub webhook. This is generated using CloudFormation.')
+              'body': json.dumps('GitHub webhook payload successfully received.')
             }
   
   LambdaPermission:

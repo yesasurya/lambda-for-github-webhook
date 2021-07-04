@@ -22,6 +22,7 @@ Test 19
 Test 20
 Test 21
 Test 22
+Test 23
 
 Somehow, I found that this is super useful:
 https://theburningmonk.com/cloudformation-ref-and-getatt-cheatsheet/

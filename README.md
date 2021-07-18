@@ -1,82 +1,10 @@
-# Sample Lambda Webhook
+# lambda-for-github-webhook
 
-Test -42
-Test -41
-Test -40
-Test -39
-Test -38
-Test -36
-Test -36
-Test -35
-Test -34
-Test -33
-Test -32
-Test -31
-Test -30
-Test -29
-Test -28
-Test -27
-Test -26
-Test -25
-Test -24
-Test -23
-Test -22
-Test -21
-Test -20
-Test -19
-Test -18
-Test -17
-Test -16
-Test -15
-Test -14
-Test -13
-Test -12
-Test -11
-Test -10
-Test -9
-Test -8
-Test -7
-Test -6
-Test -5
-Test -4
-Test -3
-Test -2
-Test -1
-Test 0
-Test 1
-Test 2
-Test 3
-Test 4
-Test 5
-Test 6
-Test 7
-Test 8
-Test 9
-Test 10
-Test 11
-Test 12
-Test 13
-Test 14
-Test 15
-Test 16
-Test 17
-Test 18
-Test 19
-Test 20
-Test 21
-Test 22
-Test 23
-Test 24
-Test 25
-Test 26
-Test 27
-Test 28
-Test 29
-Test 30
-Test 31
-Test 32
-Test 33
-Test 34
+### What is this?
+This is a CloudFormation template which will provision followings:
+1. A Lambda function which will receive the GitHub webhook payload
+2. A public endpoint (API Gateway) which will route the request from GitHub webhook to the Lambda function
 
+### Resources
 Somehow, I found that this is super useful:
 https://theburningmonk.com/cloudformation-ref-and-getatt-cheatsheet/

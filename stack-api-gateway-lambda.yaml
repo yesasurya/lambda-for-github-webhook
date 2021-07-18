@@ -1,4 +1,4 @@
-## README.short.md
+## IMPORTANT!!!
 ## This is a CloudFormation template which will generate API Gateway and Lambda function
 ## The API Gateway has one POST method acting as a proxy for Lambda
 
@@ -55,7 +55,7 @@ Resources:
       FunctionName: demo-github-webhook-handler
       ## This is the Lambda execution role
       ## Please change this with your role ARN
-      Role: 'arn:aws:iam::700707367057:role/DemoLambdaBasicExecutionRole'
+      Role: 'arn:aws:iam::614734245332:role/LambdaBasicExecutionRole'
       Runtime: python3.8
       Handler: index.lambda_handler
       Code:
@@ -105,6 +105,7 @@ Resources:
               payload = json.loads(payload)
               name = payload["repository"]["owner"]["name"]
               email = payload["repository"]["owner"]["email"]
+              language = payload["repository"]["language"]
               
               user = get_user_from_db(name)
               if user is not None:
@@ -112,6 +113,10 @@ Resources:
                 message = '[SUCCESS]: Successfully get user information from DynamoDB.'
                 print(message)
                 print(json.dumps(user))
+                if language is not None:
+                  print('[INFO] Language used by repository: {0}'.format(language))
+                else:
+                  print('[INFO] Unable to detect language used by repository')
               else:
                 HTTP_STATUS_CODE = 401
                 message = '[ERROR]: User is not recognized. Access denied.'
